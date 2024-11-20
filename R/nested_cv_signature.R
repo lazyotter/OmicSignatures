@@ -46,11 +46,12 @@
 #'
 #' @export
 nested_cv_signature <- function(data, features, exposure, n_folds=5, ...){
-  # Split dataset into 5 folds for nested CV
+  # Split dataset into n_folds for nested CV
   folds <- split_k_folds(data, n_folds)
   
   pred_cv <- vector("list", 2)
   names(pred_cv) <- c("l1se", "lmin") 
+  model_score <- matrix(data = NA, nrow = 0, ncol = 5)
   
   # Evaluate model for each fold
   for(fold in 1:length(folds)){
