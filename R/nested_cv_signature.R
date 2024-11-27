@@ -55,7 +55,7 @@ nested_cv_signature <- function(data, features, exposure, n_folds=5, ...){
   
   # Evaluate model for each fold
   for(fold in 1:length(folds)){
-    cat("Fold", fold, "in progress...\n")
+    cat("Outer fold", fold, "out of", n_folds, "in progress...\n")
     
     # Split data into train & test
     test <- folds[[fold]]
@@ -87,10 +87,12 @@ nested_cv_signature <- function(data, features, exposure, n_folds=5, ...){
                             y = pred_cv[[method]][,1])) # Orig value of exposure
     # Add lambda selection method and variable name
     cor[["method"]] <- method
-    rownames(cor) <- exposure
+    # Remove auto name of cor
+    rownames(cor) <- c()
+    
     # Update table of model performance
     model_score <- rbind(model_score, cor)
   }
-  
+model_score$exposure <- exposure
 return(model_score)
 }
