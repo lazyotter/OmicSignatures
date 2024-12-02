@@ -11,13 +11,13 @@
 #' }
 #' 
 #'
-format_cvglmnet <- function(df_crossval){
+format_cvglmnet <- function(df_crossval, features){
   
   resultsCV_tmp <- list()
   
-  resultsCV_tmp$lmin <- extract_features(df_crossval, "lambda.min")
+  resultsCV_tmp$lmin <- extract_features(df_crossval, "lambda.min", features)
   
-  resultsCV_tmp$l1se <- extract_features(df_crossval, "lambda.1se")
+  resultsCV_tmp$l1se <- extract_features(df_crossval, "lambda.1se", features)
   
   res <- list(df_crossval, resultsCV_tmp)
   
@@ -32,6 +32,7 @@ format_cvglmnet <- function(df_crossval){
 #'
 #' @param df_crossval A `cv.glmnet` object, typically the result of running `cv.glmnet` on a dataset. This object contains the cross-validation results and the fitted model.
 #' @param lambda A character string specifying the lambda value to use for feature selection. This can be either "lambda.min" or "lambda.1se" to select features based on the respective lambda value.
+#' @param features A character vector of column names specifying all feature names.
 #'
 #' @return A character vector containing the names of the features selected at the specified lambda, excluding the intercept.
 #'
@@ -50,11 +51,13 @@ format_cvglmnet <- function(df_crossval){
 #' @seealso \code{\link[glmnet]{cv.glmnet}}, \code{\link{format_cvglmnet}}
 #' @export
 #'
-extract_features <- function(df_crossval, lambda){
+extract_features <- function(df_crossval, lambda, features){
   coef_res <- predict(df_crossval$glmnet.fit, type = "coefficients", s = df_crossval[[lambda]])
   
   # Extract non-zero feature names at lambda
   sig_features <- names(which(coef_res[, 1] != 0)[-1])  # Exclude intercept
+  # Select features only (if there are covariates)
+  sig_features <- sig_features[which(sig_features %in% features)]
   return(sig_features)
 }
 
@@ -92,10 +95,16 @@ extract_features <- function(df_crossval, lambda){
 #'
 create_signature <- function(data, train_idx, features, exposure, covars = c(), folds = 5, parallel = F, cores = 18){
   t1 <- Sys.time()
-  
+  n_covars <- 0
   # Feature/covariate dataframe
-  data_tmp <- data[train_idx, c(features, covars)] %>% as.matrix()
-  penalty_factors <- c(rep(1, length(features)), rep(0, length(covars)))
+  if(length(covars) > 0){
+    data_covars <- fastDummies::dummy_cols(data[train_idx, covars],
+                                           remove_selected_columns = T, 
+                                           remove_first_dummy = T)
+    n_covars <- ncol(data_covars)
+    data_tmp <- cbind(data[train_idx, features], data_covars[train_idx,]) %>% as.matrix()
+  }
+  penalty_factors <- c(rep(1, length(features)), rep(0, n_covars))
   # Exposure dataframe
   outcome_tmp <- data[train_idx, exposure] %>% as.matrix()
   colnames(outcome_tmp) <- exposure
@@ -109,8 +118,10 @@ create_signature <- function(data, train_idx, features, exposure, covars = c(), 
                                     type.measure = "mse", nlambda = 100, 
                                     parallel = parallel, nfolds = folds,
                                     penalty.factor = penalty_factors)
-  
-  res <- format_cvglmnet(crossval_tmp)
+  if(is.numeric(features)){
+    features <- colnames(data[,features])
+  }
+  res <- format_cvglmnet(crossval_tmp, features)
   
   t2 <- Sys.time()
   cat("Cross-validated signature completed in", difftime(t2,t1), "\n")

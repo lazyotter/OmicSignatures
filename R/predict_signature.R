@@ -38,10 +38,16 @@ pred_signature <- function(data, crossval, test_idx, features, exposure) {
   # Filter for test set + metabolomic features
   data_tmp <- data[test_idx, features] %>% as.matrix()
   
-  # Use fitted model to predict signature for both lambda.min and lambda.1se
-  pred_l1se <- predict(object = crossval, newx = data_tmp, s = crossval$lambda.1se)
-  pred_lmin <- predict(object = crossval, newx = data_tmp, s = crossval$lambda.min)
+  # Extract coefficients
+  coefs_l1se <- coef(crossval, s = crossval$lambda.1se)
+  coefs_lmin <- coef(crossval, s = crossval$lambda.min)
   
+  features_coefs_l1se <- coefs_l1se[rownames(coefs_l1se) %in% features, , drop = FALSE]
+  features_coefs_lmin <- coefs_l1se[rownames(coefs_lmin) %in% features, , drop = FALSE]
+  
+  pred_l1se <- data_tmp %*% features_coefs_l1se
+  pred_lmin <- data_tmp %*% features_coefs_lmin
+   
   # Get actual data for exposure from test set
   actual_data <- data[test_idx, exposure]
   
