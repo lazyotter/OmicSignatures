@@ -44,7 +44,7 @@ pred_signature <- function(data, crossval, test_idx, features, exposure) {
   
   # Extract feature coefficients only (no covariates)
   features_coefs_l1se <- coefs_l1se[rownames(coefs_l1se) %in% features, , drop = FALSE]
-  features_coefs_lmin <- coefs_l1se[rownames(coefs_lmin) %in% features, , drop = FALSE]
+  features_coefs_lmin <- coefs_lmin[rownames(coefs_lmin) %in% features, , drop = FALSE]
   
   # Get prediction based on lasso coefficients 
   pred_l1se <- data_tmp %*% features_coefs_l1se
