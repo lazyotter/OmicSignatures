@@ -4,7 +4,7 @@
 \alias{format_cvglmnet}
 \title{Format cv.glmnet Object from create_signature}
 \usage{
-format_cvglmnet(df_crossval)
+format_cvglmnet(df_crossval, features)
 }
 \arguments{
 \item{df_crossval}{A \code{cv.glmnet} object, typically obtained from \code{create_signature}.}

@@ -98,11 +98,13 @@ create_signature <- function(data, train_idx, features, exposure, covars = c(), 
   n_covars <- 0
   # Feature/covariate dataframe
   if(length(covars) > 0){
-    data_covars <- fastDummies::dummy_cols(data[train_idx, covars],
+    data_covars <- fastDummies::dummy_cols(data[, covars],
                                            remove_selected_columns = T, 
                                            remove_first_dummy = T)
     n_covars <- ncol(data_covars)
     data_tmp <- cbind(data[train_idx, features], data_covars[train_idx,]) %>% as.matrix()
+  } else {
+    data_tmp <- data[train_idx, features]
   }
   penalty_factors <- c(rep(1, length(features)), rep(0, n_covars))
   # Exposure dataframe
