@@ -106,6 +106,7 @@ create_signature <- function(data, train_idx, features, exposure, covars = c(), 
   } else {
     data_tmp <- data[train_idx, features]
   }
+  # Create penalty vector
   penalty_factors <- c(rep(1, length(features)), rep(0, n_covars))
   # Exposure dataframe
   outcome_tmp <- data[train_idx, exposure] %>% as.matrix()
