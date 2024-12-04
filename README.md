@@ -38,5 +38,10 @@ covars <- c("Age", "Sex", "Smoke_Stat", "BMI")
 all_data <- covar_to_factor(all_data, c("Sex", "Smoke_Stat")
 all_data <- covar_to_numeric(all_data, c("Age", "BMI")
 
-signature <- create_signature(data = all_data, train_idx = c(1:nrow(all_data)), features = features, exposure = "Coffee", covars = covars) 
+
+## Generate omic signature of exposure
+signature <- create_signature(data = all_data, train_idx = c(1:nrow(all_data)), features = features, exposure = "Coffee", covars = covars)
+
+# Get model performance of LASSO
+model_perf <- nested_cv_signature(data = data, features = features, exposure = "Coffee", covars = covars)
 ```
