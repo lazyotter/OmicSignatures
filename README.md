@@ -45,3 +45,4 @@ signature <- create_signature(data = all_data, train_idx = c(1:nrow(all_data)), 
 # Get model performance of LASSO
 model_perf <- nested_cv_signature(data = data, features = features, exposure = "Coffee", covars = covars)
 ```
+Other methods can be used to correct for covariates. See ```?residuals``` for more information.
