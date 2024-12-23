@@ -35,8 +35,8 @@ features <- colnames(all_data)[3:500]
 covars <- c("Age", "Sex", "Smoke_Stat", "BMI")
 
 # Ensure covariates format is correct (categorical as factor, numeric as numeric)
-all_data <- covar_to_factor(all_data, c("Sex", "Smoke_Stat")
-all_data <- covar_to_numeric(all_data, c("Age", "BMI")
+all_data <- covar_to_factor(all_data, c("Sex", "Smoke_Stat"))
+all_data <- covar_to_numeric(all_data, c("Age", "BMI"))
 
 
 ## Generate omic signature of exposure
