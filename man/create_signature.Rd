@@ -22,13 +22,15 @@ create_signature(
 
 \item{features}{A character vector of column names specifying the features (predictor variables) to be included in the model.}
 
+\item{exposure}{A character string specifying the name of the exposure/outcome variable (response) in \code{data}.}
+
+\item{covars}{A character vector specifying covariates to be included in the model. These will not be penalized.'}
+
 \item{folds}{Integer specifying the number of folds for cross-validation. Default is 5.}
 
 \item{parallel}{Logical value indicating whether to use parallel processing. Default is \code{FALSE}.}
 
 \item{cores}{Integer specifying the number of cores to use if \code{parallel = TRUE}. Default is 18.}
-
-\item{outcome}{A character string specifying the name of the outcome variable (response) in \code{data}.}
 }
 \value{
 A list with two elements:
@@ -49,7 +51,7 @@ data <- my_data_frame
 train_index <- sample(1:nrow(data), size = floor(0.8 * nrow(data)))
 feature_names <- colnames(data)[2:100] # Example feature names
 outcome_name <- "my_outcome"
-signature <- create_signature(data, train_index, feature_names, outcome_name, n_folds = 10, parallel = TRUE, n_cores = 4)
+signature <- create_signature(data, train_index, feature_names, outcome_name, folds = 10, parallel = TRUE, n_cores = 4)
 }
 
 }

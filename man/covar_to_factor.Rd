@@ -5,8 +5,6 @@
 \title{Convert Covariates to Factors}
 \usage{
 covar_to_factor(data, covars)
-
-covar_to_factor(data, covars)
 }
 \arguments{
 \item{data}{A data frame containing the columns to be converted.}
@@ -15,23 +13,11 @@ covar_to_factor(data, covars)
 }
 \value{
 A data frame with the specified columns converted to factors.
-
-A data frame with the specified columns converted to factors.
 }
 \description{
 This function converts specified columns in a data frame to factors.
-
-This function converts specified columns in a data frame to factors.
 }
 \examples{
-# Example with character vector of column names
-data <- data.frame(a = c(1, 2, 3), b = c("x", "y", "z"), c = c(TRUE, FALSE, TRUE))
-covar_to_factor(data, c("a", "c"))
-
-# Example with numeric indices
-data <- data.frame(a = c(1, 2, 3), b = c("x", "y", "z"), c = c(TRUE, FALSE, TRUE))
-covar_to_factor(data, c(1, 3))
-
 # Example with character vector of column names
 data <- data.frame(a = c(1, 2, 3), b = c("x", "y", "z"), c = c(TRUE, FALSE, TRUE))
 covar_to_factor(data, c("a", "c"))
