@@ -96,29 +96,7 @@ split_k_folds <- function(data, n_folds){
 #' covar_to_factor(data, c(1, 3))
 #'
 #' @export
-covar_to_factor <- function(data, covars){
-  data[, covars] <- lapply(data[, covars], as.factor)
-  return(data)
-}
-
-#' Convert Covariates to Factors
 #'
-#' This function converts specified columns in a data frame to factors.
-#'
-#' @param data A data frame containing the columns to be converted.
-#' @param covars A character vector or numeric vector specifying the columns to convert to factors.
-#'
-#' @return A data frame with the specified columns converted to factors.
-#' @examples
-#' # Example with character vector of column names
-#' data <- data.frame(a = c(1, 2, 3), b = c("x", "y", "z"), c = c(TRUE, FALSE, TRUE))
-#' covar_to_factor(data, c("a", "c"))
-#'
-#' # Example with numeric indices
-#' data <- data.frame(a = c(1, 2, 3), b = c("x", "y", "z"), c = c(TRUE, FALSE, TRUE))
-#' covar_to_factor(data, c(1, 3))
-#'
-#' @export
 covar_to_factor <- function(data, covars){
   data[, covars] <- lapply(data[, covars], as.factor)
   return(data)
@@ -143,6 +121,7 @@ covar_to_factor <- function(data, covars){
 #' covar_to_numeric(data, c(1, 2))
 #'
 #' @export
+#'
 covar_to_numeric <- function(data, covars){
   data[, covars] <- lapply(data[, covars], as.numeric)
   return(data)
