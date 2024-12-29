@@ -55,8 +55,8 @@ pred_signature <- function(data, crossval, test_idx, features, exposure) {
   
   # Combine actual data and predicted signature values
   pred_data <- list(
-    l1se = cbind(actual_data, predsig = pred_l1se) %>% as.matrix(),
-    lmin = cbind(actual_data, predsig = pred_lmin) %>% as.matrix()
+    l1se = cbind(actual_data, predsig = as.matrix(pred_l1se)),
+    lmin = cbind(actual_data, predsig = as.matrix(pred_lmin))
   )
   
   return(pred_data)
