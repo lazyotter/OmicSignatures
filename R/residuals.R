@@ -75,8 +75,8 @@ get_residuals <- function(data, features, covars, exposure, id_cols, ctrl_idx=c(
   # For each feature, residuals with lm (not using mixed models because not correcting for plate or batch)
   if(parallel){
     # Register parallel backend if needed
-    cl <- makeCluster(cores)
-    registerDoParallel(cl)
+    cl <- parallel::makeCluster(cores)
+    doParallel::registerDoParallel(cl)
     
   } 
   
@@ -111,7 +111,7 @@ get_residuals <- function(data, features, covars, exposure, id_cols, ctrl_idx=c(
     return(res)
   }
   
-  if(parallel){stopCluster(cl)}
+  if(parallel){parallel::stopCluster(cl)}
 
   
   
