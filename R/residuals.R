@@ -114,10 +114,15 @@ get_residuals <- function(data, features, covars, exposure, id_cols, ctrl_idx=c(
   # Add feature names to residuals
   colnames(resid_tmp) <- features
   # Add sample ID columns to residuals
-  ctrl_names <- data[ctrl_idx,] %>% dplyr::select(all_of(id_cols))
-  case_names <- data[-ctrl_idx,] %>% dplyr::select(all_of(id_cols))
-  names <- rbind(ctrl_names, case_names)
-  resid <- bind_cols(names, resid_tmp)
+  if(length(ctrl_idx) > 0){
+    ctrl_names <- data[ctrl_idx,] %>% dplyr::select(all_of(id_cols))
+    case_names <- data[-ctrl_idx,] %>% dplyr::select(all_of(id_cols))
+    names <- rbind(ctrl_names, case_names)
+    resid <- bind_cols(names, resid_tmp)
+  } else {
+    names <- data %>% dplyr::select(all_of(id_cols))
+    resid <- bind_cols(names, resid_tmp)
+  }
   
   # Merge with original covariates
   final <- merge(resid, data %>% dplyr::select(!all_of(features)), by = id_cols, no.dups = TRUE)
