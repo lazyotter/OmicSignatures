@@ -80,6 +80,8 @@ get_residuals <- function(data, features, covars, exposure, id_cols, ctrl_idx=c(
     
   } 
   
+  `%>%` <- dplyr::`%>%`
+
   resid_tmp = foreach(ii=1:length(features), .packages = c("lme4", "tidyverse"), .export = "features", .combine='cbind') %dopar% {
     cat("Computing residuals on", colnames(data[,features])[ii], "...\n")
     
@@ -93,14 +95,14 @@ get_residuals <- function(data, features, covars, exposure, id_cols, ctrl_idx=c(
     resid_ctrl  <- residuals(tmp_res_ctrl)
     exposure_coef <- coefficients(tmp_res_ctrl)[exposure]
     # Add back the fixed effect into the residual
-    res_ctrl <- exposure_coef * data_model %>% dplyr::select(all_of(exposure)) + resid_ctrl
+    res_ctrl <- exposure_coef * data_model %>% dplyr::select(dplyr::all_of(exposure)) + resid_ctrl
     
     # If there is a case/control split, compute residuals on cases
     if(length(ctrl_idx) > 0){
       data_case <- data[-ctrl_idx,]
       tmp_res_case <- predict(tmp_res_ctrl, newdata = data_case)
       resid_case <- data_case[[namefeat_tmp]] - tmp_res_case
-      res_case <- exposure_coef * data_case %>% dplyr::select(all_of(exposure)) + resid_case
+      res_case <- exposure_coef * data_case %>% dplyr::select(dplyr::all_of(exposure)) + resid_case
       res <- rbind(res_ctrl, res_case)
     } else{
       res <- res_ctrl
@@ -110,22 +112,22 @@ get_residuals <- function(data, features, covars, exposure, id_cols, ctrl_idx=c(
   }
   
   if(parallel){stopCluster(cl)}
+
   
-  # Add feature names to residuals
-  colnames(resid_tmp) <- features
-  # Add sample ID columns to residuals
+  
+  
   if(length(ctrl_idx) > 0){
-    ctrl_names <- data[ctrl_idx,] %>% dplyr::select(all_of(id_cols))
-    case_names <- data[-ctrl_idx,] %>% dplyr::select(all_of(id_cols))
+    ctrl_names <- data[ctrl_idx,] %>% dplyr::select(dplyr::all_of(id_cols))
+    case_names <- data[-ctrl_idx,] %>% dplyr::select(dplyr::all_of(id_cols))
     names <- rbind(ctrl_names, case_names)
-    resid <- bind_cols(names, resid_tmp)
+    resid <- dplyr::bind_cols(names, resid_tmp)
+    # Merge with original covariates
+    final <- merge(data %>% dplyr::select(!dplyr::all_of(features)), by = id_cols, no.dups = TRUE, resid)
   } else {
-    names <- data %>% dplyr::select(all_of(id_cols))
-    resid <- bind_cols(names, resid_tmp)
+    colnames(resid_tmp) <- features
+    final <- dplyr::bind_cols(data %>% dplyr::select(!dplyr::all_of(features)), resid_tmp)
   }
   
-  # Merge with original covariates
-  final <- merge(resid, data %>% dplyr::select(!all_of(features)), by = id_cols, no.dups = TRUE)
 
   return(final)
 
