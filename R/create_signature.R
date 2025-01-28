@@ -72,6 +72,7 @@ extract_features <- function(df_crossval, lambda, features){
 #' @param covars A character vector specifying covariates to be included in the model. These will not be penalized.'
 #' @param folds Integer specifying the number of folds for cross-validation. Default is 5.
 #' @param parallel Logical value indicating whether to use parallel processing. Default is \code{FALSE}.
+#' @param seed Integer specifying the seed for set.seed. Default is 1.
 #' @param cores Integer specifying the number of cores to use if \code{parallel = TRUE}. Default is 18.
 #'
 #' @return A list with two elements:
@@ -94,7 +95,7 @@ extract_features <- function(df_crossval, lambda, features){
 #' @seealso \code{\link[glmnet]{cv.glmnet}}, \code{\link[doMC]{registerDoMC}}, \code{\link{format_cvglmnet}}
 #' @export
 #'
-create_signature <- function(data, train_idx, features, exposure, covars = c(), folds = 5, parallel = F, cores = 18){
+create_signature <- function(data, train_idx, features, exposure, covars = c(), folds = 5, parallel = F, cores = 18, seed = 1, ...){
   t1 <- Sys.time()
   n_covars <- 0
   # Feature/covariate dataframe
@@ -117,11 +118,12 @@ create_signature <- function(data, train_idx, features, exposure, covars = c(), 
   if(parallel){
     doMC::registerDoMC(cores = cores)
   }
+  set.seed(seed)
   crossval_tmp <- glmnet::cv.glmnet(x = data_tmp, y = outcome_tmp, 
                                     lambda.min.ratio = 0.001,
                                     type.measure = "mse", nlambda = 100, 
                                     parallel = parallel, nfolds = folds,
-                                    penalty.factor = penalty_factors)
+                                    penalty.factor = penalty_factors, ...)
   if(is.numeric(features)){
     features <- colnames(data[,features])
   }

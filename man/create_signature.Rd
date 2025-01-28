@@ -12,7 +12,9 @@ create_signature(
   covars = c(),
   folds = 5,
   parallel = F,
-  cores = 18
+  cores = 18,
+  seed = 1,
+  ...
 )
 }
 \arguments{
@@ -31,6 +33,8 @@ create_signature(
 \item{parallel}{Logical value indicating whether to use parallel processing. Default is \code{FALSE}.}
 
 \item{cores}{Integer specifying the number of cores to use if \code{parallel = TRUE}. Default is 18.}
+
+\item{seed}{Integer specifying the seed for set.seed. Default is 1.}
 }
 \value{
 A list with two elements:
