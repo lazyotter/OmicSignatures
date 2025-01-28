@@ -66,7 +66,7 @@ bootstrap_signature <- function(data, features, exposure, n_boot, covars = c(), 
     rows_bootstrap <- index_freq_table$index_bootstrap %>% as.character() %>% as.numeric()
     
     # Create matrix of features, covars, and exposure
-    tmp_data <- data[rows_bootstrap, c(features, covars, exposure)] %>% as.matrix()
+    tmp_data <- data[rows_bootstrap, c(features, covars, exposure)]
     # Run cross-validation
     if(parallel){registerDoMC(cores = cores)}
     tmp_res <- create_signature(data = tmp_data, 
