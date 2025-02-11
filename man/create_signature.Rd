@@ -10,6 +10,7 @@ create_signature(
   features,
   exposure,
   covars = c(),
+  filter = F,
   folds = 5,
   parallel = F,
   cores = 18,
@@ -27,6 +28,8 @@ create_signature(
 \item{exposure}{A character string specifying the name of the exposure/outcome variable (response) in \code{data}.}
 
 \item{covars}{A character vector specifying covariates to be included in the model. These will not be penalized.'}
+
+\item{filter}{Logical value indicating whether to filter features used in the model for those partially correlated with the exposure.}
 
 \item{folds}{Integer specifying the number of folds for cross-validation. Default is 5.}
 

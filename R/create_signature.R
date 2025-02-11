@@ -70,6 +70,7 @@ extract_features <- function(df_crossval, lambda, features){
 #' @param features A character vector of column names specifying the features (predictor variables) to be included in the model.
 #' @param exposure A character string specifying the name of the exposure/outcome variable (response) in `data`.
 #' @param covars A character vector specifying covariates to be included in the model. These will not be penalized.'
+#' @param filter Logical value indicating whether to filter features used in the model for those partially correlated with the exposure.
 #' @param folds Integer specifying the number of folds for cross-validation. Default is 5.
 #' @param parallel Logical value indicating whether to use parallel processing. Default is \code{FALSE}.
 #' @param seed Integer specifying the seed for set.seed. Default is 1.
@@ -95,21 +96,28 @@ extract_features <- function(df_crossval, lambda, features){
 #' @seealso \code{\link[glmnet]{cv.glmnet}}, \code{\link[doMC]{registerDoMC}}, \code{\link{format_cvglmnet}}
 #' @export
 #'
-create_signature <- function(data, train_idx, features, exposure, covars = c(), folds = 5, parallel = F, cores = 18, seed = 1, ...){
+create_signature <- function(data, train_idx, features, exposure, covars = c(), filter = F, folds = 5, parallel = F, cores = 18, seed = 1, ...){
   t1 <- Sys.time()
   n_covars <- 0
+  # Filtering features for significant partial correlation w/exposure
+  if(filter){
+    feats_final <- get_pcor_feats(data, features, exposure, covars, parallel, cores)
+  } else{
+    feats_final <- features
+  }
+  
   # Feature/covariate dataframe
   if(length(covars) > 0){
     data_covars <- fastDummies::dummy_cols(data[, covars],
                                            remove_selected_columns = T, 
                                            remove_first_dummy = T)
     n_covars <- ncol(data_covars)
-    data_tmp <- cbind(data[train_idx, features], data_covars[train_idx,]) %>% as.matrix()
+    data_tmp <- cbind(data[train_idx, feats_final], data_covars[train_idx,]) %>% as.matrix()
   } else {
-    data_tmp <- as.matrix(data[train_idx, features])
+    data_tmp <- as.matrix(data[train_idx, feats_final])
   }
   # Create penalty vector
-  penalty_factors <- c(rep(1, length(features)), rep(0, n_covars))
+  penalty_factors <- c(rep(1, length(feats_final)), rep(0, n_covars))
   # Exposure dataframe
   outcome_tmp <- data[train_idx, exposure] %>% as.matrix()
   colnames(outcome_tmp) <- exposure
