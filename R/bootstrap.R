@@ -69,6 +69,7 @@ bootstrap_signature <- function(data, features, exposure, n_boot, covars = c(), 
     tmp_data <- data[rows_bootstrap, c(features, covars, exposure)]
     # Run cross-validation
     if(parallel){registerDoMC(cores = cores)}
+
     tmp_res <- create_signature(data = tmp_data, 
                                 train_idx = c(1:nrow(tmp_data)), 
                                 features = features, 
@@ -78,19 +79,20 @@ bootstrap_signature <- function(data, features, exposure, n_boot, covars = c(), 
                                 parallel = parallel, 
                                 seed = i,
                                 cores = cores,
-                                weights = index_freq_table$Freq)
+                                weights = as.matrix(index_freq_table$Freq))
     # tmp_res <- cv.glmnet(x = data_x, y = data_y, weights = index_freq_table$Freq, lambda.min.ratio = 0.001,
     #                      type.measure = "mse",
     #                      nlambda = 100, parallel = parallel, nfolds = folds)
     tmp_coef_l1se <- coef(tmp_res$crossval, s="lambda.1se")
     tmp_coef_lmin <- coef(tmp_res$crossval, s="lambda.min")
     
-    boot_feat_count.l1se[i,rownames(tmp_coef_l1se)[-1]] <- tmp_coef_l1se[-1] # Exclude intercept
-    boot_feat_count.lmin[i,rownames(tmp_coef_lmin)[-1]] <- tmp_coef_lmin[-1] # Exclude intercept
+    cols <- which(rownames(tmp_coef_l1se) %in% features) # Saving coefs for features only
+    boot_feat_count.l1se[i,] <- tmp_coef_l1se[cols] # Exclude intercept
+    boot_feat_count.lmin[i,] <- tmp_coef_lmin[cols] # Exclude intercept
 
     # Get prediction of signatures on all data
     tmp_pred_cv <- pred_signature(data = tmp_data,
-                                 crossval = tmp_res,
+                                 crossval = tmp_res$crossval,
                                  test_idx = 1:nrow(tmp_data),
                                  features = features,
                                  exposure = exposure)
@@ -107,8 +109,9 @@ bootstrap_signature <- function(data, features, exposure, n_boot, covars = c(), 
     
     # Save correlation results, number of features selected in this iteration
     ## Number of features selected with l1se or lmin
-    num_feat_l1se <- length(which(tmp_coef_l1se != 0)) - 1 # Exclude intercept
-    num_feat_lmin <- length(which(tmp_coef_lmin != 0)) - 1 # Exclude intercept
+    print(which(tmp_coef_l1se[cols] != 0))
+    num_feat_l1se <- length(which(tmp_coef_l1se[cols] != 0)) - 1 # Exclude intercept
+    num_feat_lmin <- length(which(tmp_coef_lmin[cols] != 0)) - 1 # Exclude intercept
     ## Append values to the data frame
     results_df <- rbind(results_df, data.frame(
       num_feat_l1se = num_feat_l1se,
