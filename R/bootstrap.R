@@ -109,7 +109,6 @@ bootstrap_signature <- function(data, features, exposure, n_boot, covars = c(), 
     
     # Save correlation results, number of features selected in this iteration
     ## Number of features selected with l1se or lmin
-    print(which(tmp_coef_l1se[cols] != 0))
     num_feat_l1se <- length(which(tmp_coef_l1se[cols] != 0)) - 1 # Exclude intercept
     num_feat_lmin <- length(which(tmp_coef_lmin[cols] != 0)) - 1 # Exclude intercept
     ## Append values to the data frame
