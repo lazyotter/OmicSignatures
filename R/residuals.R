@@ -113,9 +113,6 @@ get_residuals <- function(data, features, covars, exposure, id_cols, ctrl_idx=c(
   
   if(parallel){parallel::stopCluster(cl)}
 
-  
-  
-  
   if(length(ctrl_idx) > 0){
     ctrl_names <- data[ctrl_idx,] %>% dplyr::select(dplyr::all_of(id_cols))
     case_names <- data[-ctrl_idx,] %>% dplyr::select(dplyr::all_of(id_cols))

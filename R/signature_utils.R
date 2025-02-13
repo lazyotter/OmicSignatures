@@ -51,15 +51,14 @@ get_lasso_coefficients <- function(alc_signature, lambda = "lambda.min") {
 #'
 #' @return A named vector with the feature name, partial correlation coefficient, p-value, and correlation type.
 #'
-#' @importFrom dplyr select
 #' @importFrom fastDummies dummy_cols
 #' @importFrom ppcor pcor
 #' @export
 part_cor <- function(data, feat, exposure, covars){
-  tmp_data <- crc_RC_all %>% dplyr::select(all_of(c(feat, exposure, covars)))
-  tmp_data_dum <- dummy_cols(tmp_data, remove_selected_columns=TRUE)
-  tmp_pcor <- pcor(tmp_data_dum)
-  return(c(feat=feat, coef=tmp_pcor$estimate[1,2], pval=tmp_pcor$p.value[1,2], type="part_cor"))
+  tmp_data <- data[,c(feat, exposure, covars)]
+  tmp_data_dum <- fastDummies::dummy_cols(tmp_data, remove_selected_columns=TRUE)
+  tmp_pcor <- ppcor::pcor(tmp_data_dum)
+  return(c(feat=feat, coef=tmp_pcor$estimate[1,2], pval=as.numeric(tmp_pcor$p.value[1,2]), type="part_cor"))
 }
 
 #' Filter Significant Correlations
@@ -72,16 +71,19 @@ part_cor <- function(data, feat, exposure, covars){
 #'
 #' @return A character vector of significant feature names.
 #'
-#' @importFrom dplyr mutate filter
 #' @importFrom stats p.adjust
 #' @export
 filter_cor <- function(cor_res, thresh=0.05, fdr=T){
+  sig_feats <- as.data.frame(cor_res)
   if(fdr){ 
-    sig_feats <- cor_res %>% as.data.frame %>% mutate(fdr=p.adjust(pval)) %>%
-      filter(fdr <= thresh) %>% pull(feat) 
+    sig_feats$fdr <- stats::p.adjust(sig_feats$pval)
+    sig_idx <- which(sig_feats$fdr <= thresh)
+    sig_res <- sig_feats$feat[sig_idx]
   } else{
-    sig_feats <- as.data.frame(cor_res) %>% filter(pval <= thresh)
+    sig_idx <- which(sig_feats$pval <= thresh)
+    sig_res <- sig_feats$feat[sig_idx]
   }
+  return(sig_res)
 }
 
 #' Compute Partial Correlation for Multiple Features
@@ -102,9 +104,9 @@ filter_cor <- function(cor_res, thresh=0.05, fdr=T){
 #' @export
 get_pcor_feats <- function(data, features, exposure, covars, parallel, ncores=NA){
   if(parallel){
-    `%faire%` <- `%dopar%`
-    registerDoParallel(ncores)
-  } else{`%faire%` <- `%do%`}
+    `%faire%` <- foreach::`%dopar%`
+    doParallel::registerDoParallel(ncores)
+  } else{`%faire%` <- foreach::`%do%`}
   if(is.numeric(features)){features <- colnames(data)[features]}
   cor_res <- foreach(feat=features, .combine='rbind', .packages = c('dplyr', 'ppcor', 'tidyr')) %faire%
     part_cor(data, feat, exposure, covars)

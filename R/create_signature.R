@@ -103,7 +103,11 @@ create_signature <- function(data, train_idx, features, exposure, covars = c(), 
   if(filter){
     feats_final <- get_pcor_feats(data, features, exposure, covars, parallel, cores)
   } else{
-    feats_final <- features
+      if(is.numeric(features)){
+        feats_final <- colnames(data[,features])
+      } else{
+        feats_final <- features
+        }
   }
   
   # Feature/covariate dataframe
@@ -132,10 +136,8 @@ create_signature <- function(data, train_idx, features, exposure, covars = c(), 
                                     type.measure = "mse", nlambda = 100, 
                                     parallel = parallel, nfolds = folds,
                                     penalty.factor = penalty_factors, ...)
-  if(is.numeric(features)){
-    features <- colnames(data[,features])
-  }
-  res <- format_cvglmnet(crossval_tmp, features)
+  
+  res <- format_cvglmnet(crossval_tmp, feats_final)
   
   t2 <- Sys.time()
   cat("Cross-validated signature completed in", difftime(t2,t1), "\n")
