@@ -33,6 +33,7 @@ format_cvglmnet <- function(df_crossval, features){
 #' @param df_crossval A `cv.glmnet` object, typically the result of running `cv.glmnet` on a dataset. This object contains the cross-validation results and the fitted model.
 #' @param lambda A character string specifying the lambda value to use for feature selection. This can be either "lambda.min" or "lambda.1se" to select features based on the respective lambda value.
 #' @param features A character vector of column names specifying all feature names.
+#' @param returncovars A boolean indicating if vector returned should also include covariates. Default is False.
 #'
 #' @return A character vector containing the names of the features selected at the specified lambda, excluding the intercept.
 #'
@@ -51,13 +52,19 @@ format_cvglmnet <- function(df_crossval, features){
 #' @seealso \code{\link[glmnet]{cv.glmnet}}, \code{\link{format_cvglmnet}}
 #' @export
 #'
-extract_features <- function(df_crossval, lambda, features){
+extract_features <- function(df_crossval, lambda, features, returncovars=F){
   coef_res <- predict(df_crossval$glmnet.fit, type = "coefficients", s = df_crossval[[lambda]])
   
   # Extract non-zero feature names at lambda
-  sig_features <- names(which(coef_res[, 1] != 0)[-1])  # Exclude intercept
+  sig_coefs <- names(which(coef_res[, 1] != 0)[-1])  # Exclude intercept
+  if(returncovars){return(c(sig_coefs))}
   # Select features only (if there are covariates)
-  sig_features <- sig_features[which(sig_features %in% features)]
+  sig_features <- sig_coefs[which(sig_coefs %in% features)]
+  non_features <- sig_coefs[!which(sig_coefs %in% features)]
+ 
+  if(length(non_features) > 0){
+    message("...Non-features selected in signature ", non_features, "\n")
+  }
   return(sig_features)
 }
 
@@ -96,12 +103,16 @@ extract_features <- function(df_crossval, lambda, features){
 #' @seealso \code{\link[glmnet]{cv.glmnet}}, \code{\link[doMC]{registerDoMC}}, \code{\link{format_cvglmnet}}
 #' @export
 #'
-create_signature <- function(data, train_idx, features, exposure, covars = c(), filter = F, folds = 5, parallel = F, cores = 18, seed = 1, ...){
+create_signature <- function(data, train_idx, features, exposure, covars = c(), filter = F, cortype = NA, folds = 5, parallel = F, cores = 18, seed = 1, ...){
   t1 <- Sys.time()
   n_covars <- 0
   # Filtering features for significant partial correlation w/exposure
   if(filter){
-    feats_final <- get_pcor_feats(data, features, exposure, covars, parallel, cores)
+    message("Filtering based on ", cortype, " correlations...\n")
+    cor_res <- get_cor_feats(data, features, exposure, covars, parallel = parallel, ncores = cores, cortype=cortype)
+    feats_final <- filter_cor(cor_res)
+    message("...", length(features)-length(feats_final), " features filtered out... \n")
+    message("...", length(feats_final), " features to be used in the signature... \n")
   } else{
       if(is.numeric(features)){
         feats_final <- colnames(data[,features])
@@ -112,16 +123,20 @@ create_signature <- function(data, train_idx, features, exposure, covars = c(), 
   
   # Feature/covariate dataframe
   if(length(covars) > 0){
+    message("Including ", length(covars), " covariates in the signature...\n")
     data_covars <- fastDummies::dummy_cols(data[, covars],
                                            remove_selected_columns = T, 
                                            remove_first_dummy = T)
+    n_numeric <- sum(unlist(lapply(covars, function(x) is.numeric(data[,x]))))
+    message("...", n_numeric, " numeric covariates, ", length(covars)-n_numeric, " categorical covariates...\n")
     n_covars <- ncol(data_covars)
-    data_tmp <- cbind(data[train_idx, feats_final], data_covars[train_idx,]) %>% as.matrix()
+    data_tmp <- as.matrix(cbind(data[train_idx, feats_final], data_covars[train_idx,]))
   } else {
     data_tmp <- as.matrix(data[train_idx, feats_final])
   }
   # Create penalty vector
   penalty_factors <- c(rep(1, length(feats_final)), rep(0, n_covars))
+  
   # Exposure dataframe
   outcome_tmp <- data[train_idx, exposure] %>% as.matrix()
   colnames(outcome_tmp) <- exposure
@@ -131,6 +146,8 @@ create_signature <- function(data, train_idx, features, exposure, covars = c(), 
     doMC::registerDoMC(cores = cores)
   }
   set.seed(seed)
+  
+  message("Computing signature...\n")
   crossval_tmp <- glmnet::cv.glmnet(x = data_tmp, y = outcome_tmp, 
                                     lambda.min.ratio = 0.001,
                                     type.measure = "mse", nlambda = 100, 
@@ -140,7 +157,10 @@ create_signature <- function(data, train_idx, features, exposure, covars = c(), 
   res <- format_cvglmnet(crossval_tmp, feats_final)
   
   t2 <- Sys.time()
-  cat("Cross-validated signature completed in", difftime(t2,t1), "\n")
+  message("...", length(res$results$lmin), " features selected by lmin in the signature of ", exposure, "...\n")
+  message("...", length(res$results$l1se),  " features selected by l1se in the signature of ", exposure, "...\n")
+  timediff <- difftime(t2, t1)
+  message("Cross-validated signature completed in ", round(timediff), " ", attr(timediff, "units"), ".\n")
   
   return(res)
 }
