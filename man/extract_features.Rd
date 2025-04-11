@@ -4,7 +4,7 @@
 \alias{extract_features}
 \title{Extract Selected Features from a cv.glmnet Object at Specified Lambda}
 \usage{
-extract_features(df_crossval, lambda, features)
+extract_features(df_crossval, lambda, features, returncovars = F)
 }
 \arguments{
 \item{df_crossval}{A \code{cv.glmnet} object, typically the result of running \code{cv.glmnet} on a dataset. This object contains the cross-validation results and the fitted model.}
@@ -12,6 +12,8 @@ extract_features(df_crossval, lambda, features)
 \item{lambda}{A character string specifying the lambda value to use for feature selection. This can be either "lambda.min" or "lambda.1se" to select features based on the respective lambda value.}
 
 \item{features}{A character vector of column names specifying all feature names.}
+
+\item{returncovars}{A boolean indicating if vector returned should also include covariates. Default is False.}
 }
 \value{
 A character vector containing the names of the features selected at the specified lambda, excluding the intercept.

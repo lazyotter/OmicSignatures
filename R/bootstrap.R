@@ -37,7 +37,7 @@
 #' }
 #'
 #' @export
-bootstrap_signature <- function(data, features, exposure, n_boot, covars = c(), folds = 5, parallel = F, cores = 18){
+bootstrap_signature <- function(data, features, exposure, n_boot, covars = c(), folds = 5, parallel = F, cores = 18, ...){
   
   # Create a dataframe with counts of each feature for each iteration
   boot_feat_count.l1se <- Matrix::Matrix(0, nrow = n_boot, ncol = length(features), dimnames = list(c(1:n_boot), features), sparse = T)
@@ -79,7 +79,8 @@ bootstrap_signature <- function(data, features, exposure, n_boot, covars = c(), 
                                 parallel = parallel, 
                                 seed = i,
                                 cores = cores,
-                                weights = as.matrix(index_freq_table$Freq))
+                                weights = as.matrix(index_freq_table$Freq),
+                                ...)
     # tmp_res <- cv.glmnet(x = data_x, y = data_y, weights = index_freq_table$Freq, lambda.min.ratio = 0.001,
     #                      type.measure = "mse",
     #                      nlambda = 100, parallel = parallel, nfolds = folds)

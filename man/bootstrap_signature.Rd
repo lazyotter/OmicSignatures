@@ -12,7 +12,8 @@ bootstrap_signature(
   covars = c(),
   folds = 5,
   parallel = F,
-  cores = 18
+  cores = 18,
+  ...
 )
 }
 \arguments{

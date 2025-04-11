@@ -51,8 +51,6 @@ get_lasso_coefficients <- function(alc_signature, lambda = "lambda.min") {
 #'
 #' @return A named vector with the feature name, partial correlation coefficient, p-value, and correlation type.
 #'
-#' @importFrom fastDummies dummy_cols
-#' @importFrom ppcor pcor
 #' @export
 part_cor <- function(data, feat, exposure, covars){
   if(length(covars) > 0){
@@ -109,7 +107,6 @@ pearson_cor <- function(data, feat, exposure, covars){
 #'
 #' @return A character vector of significant feature names.
 #'
-#' @importFrom stats p.adjust
 #' @export
 filter_cor <- function(cor_res, thresh=0.05, fdr=T){
   if(fdr){ 
@@ -135,9 +132,6 @@ filter_cor <- function(cor_res, thresh=0.05, fdr=T){
 #' @param ncores Integer; number of cores to use for parallel processing (only used if \code{parallel = TRUE}).
 #' @param cortype Character; type of correlation to compute. Options are \code{"pearson"} or \code{"partial"}.
 #'
-#' @importFrom foreach %dopar% %do% foreach
-#' @importFrom doParallel registerDoParallel
-#' @importFrom stats p.adjust
 #' @export
 #'
 #' @examples

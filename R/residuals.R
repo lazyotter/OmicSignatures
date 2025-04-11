@@ -51,10 +51,6 @@
 #'   parallel = FALSE
 #' )
 #'
-#' @import dplyr
-#' @import foreach
-#' @import doParallel
-#' @import lme4
 #' @export
 get_residuals <- function(data, features, covars, exposure, id_cols, ctrl_idx=c(), parallel=F, cores=18){
   
@@ -82,7 +78,7 @@ get_residuals <- function(data, features, covars, exposure, id_cols, ctrl_idx=c(
   
   `%>%` <- dplyr::`%>%`
 
-  resid_tmp = foreach(ii=1:length(features), .packages = c("lme4", "tidyverse"), .export = "features", .combine='cbind') %dopar% {
+  resid_tmp = foreach::foreach(ii=1:length(features), .packages = c("lme4", "tidyverse"), .export = "features", .combine='cbind') %dopar% {
     cat("Computing residuals on", colnames(data[,features])[ii], "...\n")
     
     namefeat_tmp <- features[ii]

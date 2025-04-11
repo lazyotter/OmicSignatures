@@ -55,7 +55,7 @@ nested_cv_signature <- function(data, features, exposure, n_folds=5, ...){
   
   # Evaluate model for each fold
   for(fold in 1:length(folds)){
-    cat("Outer fold", fold, "out of", n_folds, "in progress...\n")
+    message("(Nested CV) Outer fold ", fold, " out of ", n_folds, " in progress...\n")
     
     # Split data into train & test
     test <- folds[[fold]]

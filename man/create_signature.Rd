@@ -11,7 +11,7 @@ create_signature(
   exposure,
   covars = c(),
   filter = F,
-  cortype = NA,
+  cortype = "pearson",
   folds = 5,
   parallel = F,
   cores = 18,

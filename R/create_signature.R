@@ -103,7 +103,7 @@ extract_features <- function(df_crossval, lambda, features, returncovars=F){
 #' @seealso \code{\link[glmnet]{cv.glmnet}}, \code{\link[doMC]{registerDoMC}}, \code{\link{format_cvglmnet}}
 #' @export
 #'
-create_signature <- function(data, train_idx, features, exposure, covars = c(), filter = F, cortype = NA, folds = 5, parallel = F, cores = 18, seed = 1, ...){
+create_signature <- function(data, train_idx, features, exposure, covars = c(), filter = F, cortype = "pearson", folds = 5, parallel = F, cores = 18, seed = 1, ...){
   t1 <- Sys.time()
   n_covars <- 0
   # Filtering features for significant partial correlation w/exposure
@@ -112,7 +112,7 @@ create_signature <- function(data, train_idx, features, exposure, covars = c(), 
     cor_res <- get_cor_feats(data, features, exposure, covars, parallel = parallel, ncores = cores, cortype=cortype)
     feats_final <- filter_cor(cor_res)
     message("...", length(features)-length(feats_final), " features filtered out... \n")
-    message("...", length(feats_final), " features to be used in the signature... \n")
+    message("...", length(feats_final), " features to be used in the model... \n")
   } else{
       if(is.numeric(features)){
         feats_final <- colnames(data[,features])

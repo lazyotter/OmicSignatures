@@ -7,7 +7,6 @@
 #'
 #' @return A data frame with two columns: `count`, the number of times each feature was selected, and `sel_freq`, the selection frequency (count divided by the number of bootstrap iterations).
 #'
-#' @importFrom dplyr arrange mutate
 #' @export
 #'
 #' @examples
