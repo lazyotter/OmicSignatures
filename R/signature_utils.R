@@ -96,7 +96,7 @@ pearson_cor <- function(data, feat, exposure, covars){
   }
   if(grepl("@", feat)){
     feat_form <- paste0("`", feat, "`")
-  } else(feat_form = feat)
+  } else{feat_form = feat}
   fmla <- as.formula(paste0(feat_form, " ~ ", paste(c(exposure, covars),collapse =" + ")))
   res_lm <- lm(formula = fmla, data = tmp_data)
   summary_lm <- summary(res_lm)
