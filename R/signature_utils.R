@@ -153,7 +153,7 @@ get_cor_feats <- function(data, features, exposure, covars, parallel, ncores=NA,
   if(cortype == "partial"){corfun <- part_cor}
   if(is.numeric(features)){features <- colnames(data)[features]}
   # Get correlation for each feature
-  cor_res <- foreach(feat=features, .combine='rbind', .packages = c('dplyr', 'ppcor', 'tidyr')) %faire%
+  cor_res <- foreach::foreach(feat=features, .combine='rbind', .packages = c('dplyr', 'ppcor', 'tidyr')) %faire%
     corfun(data, feat, exposure, covars)
   cor_res <- as.data.frame(cor_res)
   cor_res$fdr <- stats::p.adjust(cor_res$pval)
