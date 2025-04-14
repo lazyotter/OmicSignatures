@@ -111,7 +111,7 @@ create_signature <- function(data, train_idx, features, exposure, covars = c(), 
   # Filtering features for significant partial correlation w/exposure
   if(filter){
     message("Filtering based on ", cortype, " correlations...\n")
-    cor_res <- get_cor_feats(data, features, exposure, covars, parallel = parallel, ncores = cores, cortype=cortype, method = fdr_method)
+    cor_res <- get_cor_feats(data[train_idx,], features, exposure, covars, parallel = parallel, ncores = cores, cortype=cortype, method = fdr_method)
     feats_final <- filter_cor(cor_res)
     message("...", length(features)-length(feats_final), " features filtered out... \n")
     message("...", length(feats_final), " features to be used in the model... \n")
