@@ -91,11 +91,13 @@ part_cor <- function(data, feat, exposure, covars){
 pearson_cor <- function(data, feat, exposure, covars){
   if(length(covars) > 0){
     tmp_data <- data[,c(feat, exposure, covars)]
-    fmla <- as.formula(paste0(feat, " ~ ", paste(c(exposure, covars),collapse =" + ")))
   } else{
     tmp_data <- data[,c(feat, exposure)]
-    fmla <- as.formula(paste0(feat, " ~ ", paste(c(exposure),collapse =" + ")))
   }
+  if(grepl("@", feat)){
+    feat_form <- paste0("`", feat, "`")
+  } else(feat_form = feat)
+  fmla <- as.formula(paste0(feat_form, " ~ ", paste(c(exposure, covars),collapse =" + ")))
   res_lm <- lm(formula = fmla, data = tmp_data)
   summary_lm <- summary(res_lm)
   coef <- summary_lm$coefficients[exposure,"Estimate"]
