@@ -6,6 +6,7 @@
 #' @param data A data frame containing the features (predictor variables) and exposure (response variable).
 #' @param features A character vector of column names specifying the features to be included in the model.
 #' @param exposure A character string specifying the name of the exposure variable (response) in `data`.
+#' @param n_folds A numeric specifying the number of folds to use in the nested cross-validation.
 #'
 #' @return A data frame summarizing model performance, with columns for the method (`lambda.min` or `lambda.1se`), 
 #' estimated correlation, p-value, and 95% confidence interval.
@@ -94,5 +95,6 @@ nested_cv_signature <- function(data, features, exposure, n_folds=5, ...){
     model_score <- rbind(model_score, cor)
   }
 model_score$exposure <- exposure
+message("Nested CV completed. Pearson correlation between exposure & signature in test sets are: \n...for lambda.min: ", round(model_score$est[2]), "\n...for lambda.1se: ", round(model_score$est[1]), "\n")
 return(model_score)
 }

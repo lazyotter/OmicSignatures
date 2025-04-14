@@ -78,6 +78,8 @@ extract_features <- function(df_crossval, lambda, features, returncovars=F){
 #' @param exposure A character string specifying the name of the exposure/outcome variable (response) in `data`.
 #' @param covars A character vector specifying covariates to be included in the model. These will not be penalized.'
 #' @param filter Logical value indicating whether to filter features used in the model for those partially correlated with the exposure.
+#' @param cortype A character string specifying the type of correlation to use for filtering. Options are "pearson" and "partial".
+#' @param fdr_method A character string specifying the type of FDR correction to use. Default is BH. Options can be found in \code{\link[stats]{p.adjust}}.
 #' @param folds Integer specifying the number of folds for cross-validation. Default is 5.
 #' @param parallel Logical value indicating whether to use parallel processing. Default is \code{FALSE}.
 #' @param seed Integer specifying the seed for set.seed. Default is 1.
@@ -103,13 +105,13 @@ extract_features <- function(df_crossval, lambda, features, returncovars=F){
 #' @seealso \code{\link[glmnet]{cv.glmnet}}, \code{\link[doMC]{registerDoMC}}, \code{\link{format_cvglmnet}}
 #' @export
 #'
-create_signature <- function(data, train_idx, features, exposure, covars = c(), filter = F, cortype = "pearson", folds = 5, parallel = F, cores = 18, seed = 1, ...){
+create_signature <- function(data, train_idx, features, exposure, covars = c(), filter = F, cortype = "pearson", fdr_method = "BH", folds = 5, parallel = F, cores = 18, seed = 1, ...){
   t1 <- Sys.time()
   n_covars <- 0
   # Filtering features for significant partial correlation w/exposure
   if(filter){
     message("Filtering based on ", cortype, " correlations...\n")
-    cor_res <- get_cor_feats(data, features, exposure, covars, parallel = parallel, ncores = cores, cortype=cortype)
+    cor_res <- get_cor_feats(data, features, exposure, covars, parallel = parallel, ncores = cores, cortype=cortype, method = fdr_method)
     feats_final <- filter_cor(cor_res)
     message("...", length(features)-length(feats_final), " features filtered out... \n")
     message("...", length(feats_final), " features to be used in the model... \n")

@@ -12,6 +12,7 @@ create_signature(
   covars = c(),
   filter = F,
   cortype = "pearson",
+  fdr_method = "BH",
   folds = 5,
   parallel = F,
   cores = 18,
@@ -31,6 +32,10 @@ create_signature(
 \item{covars}{A character vector specifying covariates to be included in the model. These will not be penalized.'}
 
 \item{filter}{Logical value indicating whether to filter features used in the model for those partially correlated with the exposure.}
+
+\item{cortype}{A character string specifying the type of correlation to use for filtering. Options are "pearson" and "partial".}
+
+\item{fdr_method}{A character string specifying the type of FDR correction to use. Default is BH. Options can be found in \code{\link[stats]{p.adjust}}.}
 
 \item{folds}{Integer specifying the number of folds for cross-validation. Default is 5.}
 

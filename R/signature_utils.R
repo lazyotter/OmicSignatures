@@ -96,7 +96,7 @@ pearson_cor <- function(data, feat, exposure, covars){
   }
   if(grepl("@", feat)){
     feat_form <- paste0("`", feat, "`")
-  } else{feat_form = feat}
+  } else{feat_form <- feat}
   fmla <- as.formula(paste0(feat_form, " ~ ", paste(c(exposure, covars),collapse =" + ")))
   res_lm <- lm(formula = fmla, data = tmp_data)
   summary_lm <- summary(res_lm)
@@ -151,7 +151,7 @@ filter_cor <- function(cor_res, thresh=0.05, fdr=T){
 #' get_cor_feats(data, features = c("feat1", "feat2"), exposure = "alcohol",
 #'               covars = c("age", "sex"), parallel = FALSE, cortype = "partial")
 #' }
-get_cor_feats <- function(data, features, exposure, covars, parallel, ncores=NA, cortype="pearson"){
+get_cor_feats <- function(data, features, exposure, covars, parallel, ncores=NA, cortype="pearson", method="BH"){
   if(parallel){
     `%faire%` <- foreach::`%dopar%`
     doParallel::registerDoParallel(ncores)
@@ -163,6 +163,6 @@ get_cor_feats <- function(data, features, exposure, covars, parallel, ncores=NA,
   cor_res <- foreach::foreach(feat=features, .combine='rbind', .packages = c('dplyr', 'ppcor', 'tidyr')) %faire%
     corfun(data, feat, exposure, covars)
   cor_res <- as.data.frame(cor_res)
-  cor_res$fdr <- stats::p.adjust(cor_res$pval)
+  cor_res$fdr <- stats::p.adjust(cor_res$pval, method=method)
   return(cor_res)
 }

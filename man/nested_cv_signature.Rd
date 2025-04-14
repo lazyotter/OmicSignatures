@@ -12,6 +12,8 @@ nested_cv_signature(data, features, exposure, n_folds = 5, ...)
 \item{features}{A character vector of column names specifying the features to be included in the model.}
 
 \item{exposure}{A character string specifying the name of the exposure variable (response) in \code{data}.}
+
+\item{n_folds}{A numeric specifying the number of folds to use in the nested cross-validation.}
 }
 \value{
 A data frame summarizing model performance, with columns for the method (\code{lambda.min} or \code{lambda.1se}),

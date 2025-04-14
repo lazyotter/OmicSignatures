@@ -11,7 +11,8 @@ get_cor_feats(
   covars,
   parallel,
   ncores = NA,
-  cortype = "pearson"
+  cortype = "pearson",
+  method = "BH"
 )
 }
 \arguments{
