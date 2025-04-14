@@ -89,8 +89,13 @@ part_cor <- function(data, feat, exposure, covars){
 #'
 #' @export
 pearson_cor <- function(data, feat, exposure, covars){
-  tmp_data <- data[,c(feat, exposure, covars)]
-  fmla <- as.formula(paste0(feat, " ~ ", paste(c(exposure, covars),collapse =" + ")))
+  if(length(covars) > 0){
+    tmp_data <- data[,c(feat, exposure, covars)]
+    fmla <- as.formula(paste0(feat, " ~ ", paste(c(exposure, covars),collapse =" + ")))
+  } else{
+    tmp_data <- data[,c(feat, exposure)]
+    fmla <- as.formula(paste0(feat, " ~ ", paste(c(exposure),collapse =" + ")))
+  }
   res_lm <- lm(formula = fmla, data = tmp_data)
   summary_lm <- summary(res_lm)
   coef <- summary_lm$coefficients[exposure,"Estimate"]
