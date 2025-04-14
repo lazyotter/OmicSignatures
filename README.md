@@ -13,6 +13,7 @@ devtools::install_github("lazyotter/OmicSignatures")
 ```
 ## Definitions
 Exposure: Refers to any factor that influences an individual’s biological system, such as dietary intake, physical activity, environmental pollutants, or lifestyle habits. Exposures can be continuous variables (e.g., daily calcium intake) or categorical variables (e.g., smoking status: smoker/non-smoker).
+
 Omics: Represents high-dimensional biological data generated through technologies such as genomics, transcriptomics, proteomics, or metabolomics. These datasets typically include measurements of thousands of biological features (e.g., genes, proteins, metabolites) across samples.
 
 ## Documentation
@@ -21,7 +22,10 @@ Detailled documentation is available throughout the package. You can access it b
 ?create_signature
 ```
 
-## Usage
+## Data structure
+The main function for this package is ```R create_signature```. This function assumes the data is in a data.frame with samples in the rows and features/covariates/metadata in the columns. Features can be passed as a list of column names or indices. The function handles one exposure at a time. Covariates can be passed as a list of names which must be present in the column names of your data. More information about the data structure can be found in the documentation.
+
+## Data preparation
 ```R
 library(OmicSignatures)
 
@@ -37,12 +41,14 @@ covars <- c("Age", "Sex", "Smoke_Stat", "BMI")
 # Ensure covariates format is correct (categorical as factor, numeric as numeric)
 all_data <- covar_to_factor(all_data, c("Sex", "Smoke_Stat"))
 all_data <- covar_to_numeric(all_data, c("Age", "BMI"))
+```
+Other methods can be used to correct for covariates. See ```?residuals``` for more information.
 
-
+## Usage
+```R
 ## Generate omic signature of exposure
-signature <- create_signature(data = all_data, train_idx = c(1:nrow(all_data)), features = features, exposure = "Coffee", covars = covars)
+signature <- create_signature(data = all_data, train_idx = c(1:nrow(all_data)), features = features, exposure = "Coffee", covars = covars, filter = TRUE)
 
 # Get model performance of LASSO
 model_perf <- nested_cv_signature(data = data, features = features, exposure = "Coffee", covars = covars)
 ```
-Other methods can be used to correct for covariates. See ```?residuals``` for more information.
