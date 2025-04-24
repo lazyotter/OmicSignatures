@@ -47,8 +47,8 @@ pred_signature <- function(data, crossval, test_idx, features, exposure) {
   data_tmp <- as.matrix(data[test_idx, rownames(features_coefs_l1se)])
   
   # Get prediction based on lasso coefficients 
-  pred_l1se <- data_tmp %*% features_coefs_l1se
-  pred_lmin <- data_tmp %*% features_coefs_lmin
+  pred_l1se <- data_tmp[,rownames(features_coefs_l1se)] %*% features_coefs_l1se
+  pred_lmin <- data_tmp[,rownames(features_coefs_lmin)] %*% features_coefs_lmin
    
   # Get actual data for exposure from test set
   actual_data <- data[test_idx, exposure]
