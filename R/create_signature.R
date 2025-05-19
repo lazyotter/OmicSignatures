@@ -115,6 +115,11 @@ create_signature <- function(data, train_idx, features, exposure, covars = c(), 
     feats_final <- filter_cor(cor_res)
     message("...", length(features)-length(feats_final), " features filtered out... \n")
     message("...", length(feats_final), " features to be used in the model... \n")
+    if(length(feats_final) <= 2){
+      warning("... <= 2 features left after filtering. Returning NULL...")
+      return(list(crossval=NULL, results=list(lmin = character(0),
+                                              l1se = character(0))))
+    }
   } else{
       if(is.numeric(features)){
         feats_final <- colnames(data[,features])
