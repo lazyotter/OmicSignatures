@@ -69,18 +69,20 @@ nested_cv_signature <- function(data, features, exposure, n_folds=5, ...){
                                  exposure = exposure, 
                                  ...)
     
-    # Get prediction of signatures for each method
-    tmp_pred_cv <- pred_signature(data = data,
-                                 crossval = train_cv$crossval, 
-                                 test_idx = test,
-                                 features = features,
-                                 exposure = exposure)
-    
-    # Save results if features selected by lmin or l1se were not none
-    for(method in names(tmp_pred_cv)){
-      pred_cv[[method]] <- rbind(pred_cv[[method]], tmp_pred_cv[[method]])
-      }
-    }
+    if(!is.null(train_cv$crossval)){
+      # Get prediction of signatures for each method
+      tmp_pred_cv <- pred_signature(data = data,
+                                   crossval = train_cv$crossval, 
+                                   test_idx = test,
+                                   features = features,
+                                   exposure = exposure)
+      
+      # Save results if features selected by lmin or l1se were not none
+      for(method in names(tmp_pred_cv)){
+        pred_cv[[method]] <- rbind(pred_cv[[method]], tmp_pred_cv[[method]])
+        }
+    } else{warning("...no signature obtained for fold ", fold, " out of ", n_folds, ". Interpret performance with caution.")}
+  }
   
   
   for(method in names(pred_cv)){ # for both l1se and lmin
@@ -95,6 +97,6 @@ nested_cv_signature <- function(data, features, exposure, n_folds=5, ...){
     model_score <- rbind(model_score, cor)
   }
 model_score$exposure <- exposure
-message("Nested CV completed. Pearson correlation between exposure & signature in test sets are: \n...for lambda.min: ", round(model_score$est[2]), "\n...for lambda.1se: ", round(model_score$est[1]), "\n")
+message("Nested CV completed. Pearson correlation between exposure & signature in test sets are: \n...for lambda.min: ", round(model_score$est[2],2), "\n...for lambda.1se: ", round(model_score$est[1],2), "\n")
 return(model_score)
 }
