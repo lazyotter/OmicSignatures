@@ -1,49 +1,36 @@
-#' Nested Cross-Validation for Signature Evaluation
+#' Perform Nested Cross-Validation to Derive and Evaluate a Metabolic Signature
 #'
-#' This function performs nested cross-validation to evaluate the performance of a LASSO-derived omics signature. 
-#' It uses a specified exposure and feature set, returning a summary of model performance.
+#' This function performs nested cross-validation (CV) to derive a penalized regression signature
+#' of an exposure using selected features, and evaluates its performance in held-out test folds.
+#' The inner CV is used to tune the model (via `create_signature`), and predictions are evaluated
+#' in the outer test fold.
 #'
-#' @param data A data frame containing the features (predictor variables) and exposure (response variable).
-#' @param features A character vector of column names specifying the features to be included in the model.
-#' @param exposure A character string specifying the name of the exposure variable (response) in `data`.
-#' @param n_folds A numeric specifying the number of folds to use in the nested cross-validation.
+#' @param data A data.frame or matrix with samples in rows and variables (including features and exposure) in columns.
+#' @param features A character vector of column names corresponding to the features used to derive the signature.
+#' @param exposure A character scalar naming the column of the exposure variable to predict.
+#' @param n_folds Integer. Number of folds to use in the outer CV loop (default is 5).
+#' @param ... Additional arguments passed to `create_signature`.
 #'
-#' @return A data frame summarizing model performance, with columns for the method (`lambda.min` or `lambda.1se`), 
-#' estimated correlation, p-value, and 95% confidence interval.
-#'
-#' @details 
-#' The function performs the following steps:
-#' \enumerate{
-#'   \item Splits the dataset into 5 folds for nested cross-validation using \code{\link{split_k_folds}}.
-#'   \item For each fold:
-#'     \itemize{
-#'       \item Splits the data into training and testing subsets.
-#'       \item Fits a LASSO model on the training set using \code{\link{create_signature}}.
-#'       \item Predicts the exposure using the fitted model on the test set via \code{\link{pred_signature}}.
-#'       \item Saves predictions for both \code{lambda.min} and \code{lambda.1se}.
-#'     }
-#'   \item Calculates correlation metrics between predicted and actual exposure values for each method 
-#'         using \code{\link{cor_sum}} and \code{\link[stats]{cor.test}}.
-#'   \item Returns a performance summary with method name, correlation estimate, p-value, and confidence intervals.
+#' @return A data.frame containing model performance metrics (Pearson correlation) for each lambda selection method (`l1se` and `lmin`).
+#' It includes the following columns:
+#' \describe{
+#'   \item{pval}{P-value of the Pearson correlation test.}
+#'   \item{est}{Estimated Pearson correlation coefficient between predicted signature and true exposure.}
+#'   \item{lower_95}{Lower bound of the 95% confidence interval for the correlation.}
+#'   \item{upper_95}{Upper bound of the 95% confidence interval for the correlation.}
+#'   \item{method}{Lambda selection method used ("l1se" or "lmin").}
+#'   \item{exposure}{The name of the exposure variable.}
+#'   \item{null_folds}{Number of outer CV folds where no signature was obtained.}
 #' }
+#'
+#' @details
+#' This function assumes that signatures are constructed using `create_signature()` and evaluated using `pred_signature()`.
+#' If no features survive univariate filtering in a given fold, no signature is computed and a warning is issued.
 #'
 #' @examples
 #' \dontrun{
-#' # Example dataset
-#' data <- my_data_frame
-#' features <- colnames(data)[2:100] # Example feature names
-#' exposure <- "my_exposure"
-#' 
-#' # Perform nested cross-validation
-#' results <- nested_cv_signature(data, features, exposure)
-#' print(results)
+#' results <- nested_cv_signature(data = my_data, features = metabolite_names, exposure = "alcohol")
 #' }
-#'
-#' @seealso 
-#' \code{\link{split_k_folds}}, 
-#' \code{\link{create_signature}}, 
-#' \code{\link{pred_signature}}, 
-#' \code{\link{cor_sum}}
 #'
 #' @export
 nested_cv_signature <- function(data, features, exposure, n_folds=5, ...){
@@ -54,6 +41,7 @@ nested_cv_signature <- function(data, features, exposure, n_folds=5, ...){
   names(pred_cv) <- c("l1se", "lmin") 
   model_score <- matrix(data = NA, nrow = 0, ncol = 5)
   
+  null_folds <- 0
   # Evaluate model for each fold
   for(fold in 1:length(folds)){
     message("(Nested CV) Outer fold ", fold, " out of ", n_folds, " in progress...\n")
@@ -81,22 +69,41 @@ nested_cv_signature <- function(data, features, exposure, n_folds=5, ...){
       for(method in names(tmp_pred_cv)){
         pred_cv[[method]] <- rbind(pred_cv[[method]], tmp_pred_cv[[method]])
         }
-    } else{warning("...no signature obtained for fold ", fold, " out of ", n_folds, ". Interpret performance with caution.")}
+    } else{
+      null_folds = null_folds + 1
+      warning("...no signature obtained for fold ", fold, " out of ", n_folds, ". Interpret performance with caution.")
+      }
   }
   
-  
-  for(method in names(pred_cv)){ # for both l1se and lmin
-    cor <- cor_sum(cor.test(x = pred_cv[[method]][,2], # Predicted signature
-                            y = pred_cv[[method]][,1])) # Orig value of exposure
-    # Add lambda selection method and variable name
-    cor[["method"]] <- method
-    # Remove auto name of cor
-    rownames(cor) <- c()
-    
-    # Update table of model performance
-    model_score <- rbind(model_score, cor)
+  if(null_folds != n_folds){
+    for(method in names(pred_cv)){ # for both l1se and lmin
+      cor <- cor_sum(cor.test(x = pred_cv[[method]][,2], # Predicted signature
+                              y = pred_cv[[method]][,1])) # Orig value of exposure
+      # Add lambda selection method and variable name
+      cor[["method"]] <- method
+      # Remove auto name of cor
+      rownames(cor) <- c()
+      
+      # Update table of model performance
+      model_score <- rbind(model_score, cor)
+    }
+    model_score$exposure <- exposure
+    model_score$null_folds <- null_folds
+    message("Nested CV completed. Pearson correlation between exposure & signature in test sets are: \n...for lambda.min: ", round(subset(model_score, method == "lmin")$est,2), "\n...for lambda.1se: ", round(subset(model_score, method == "l1se")$est,2), "\n")
+    message("Signature could not be computed in ", null_folds, " out of ", n_folds, " folds.")
+    return(model_score)
+  } else{
+    message("Nested CV was unable to be completed on all folds. Either the signal is weak or there are <= 2 features univariately associated with your exposure.")
+    model_score <- data.frame(
+      pval = NA,
+      est = NA,
+      lower_95 = NA,
+      upper_95 = NA,
+      method = NA,
+      exposure = exposure,
+      null_folds = null_folds,
+      stringsAsFactors = FALSE
+    )
+    return(model_score)
   }
-model_score$exposure <- exposure
-message("Nested CV completed. Pearson correlation between exposure & signature in test sets are: \n...for lambda.min: ", round(model_score$est[2],2), "\n...for lambda.1se: ", round(model_score$est[1],2), "\n")
-return(model_score)
 }
