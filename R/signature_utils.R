@@ -88,21 +88,27 @@ part_cor <- function(data, feat, exposure, covars){
 #' pearson_cor(data = my_data, feat = "metabolite1", exposure = "alcohol", covars = c("age", "sex"))
 #'
 #' @export
-pearson_cor <- function(data, feat, exposure, covars){
-  if(length(covars) > 0){
-    tmp_data <- data[,c(feat, exposure, covars)]
-  } else{
-    tmp_data <- data[,c(feat, exposure)]
-  }
-  if(grepl("@", feat)){
-    feat_form <- paste0("`", feat, "`")
-  } else{feat_form <- feat}
-  fmla <- as.formula(paste0(feat_form, " ~ ", paste(c(exposure, covars),collapse =" + ")))
+pearson_cor <- function(data, feat, exposure, covars) {
+  vars <- c(feat, exposure, covars)
+  tmp_data <- data[, vars, drop = FALSE]
+  
+  fmla <- reformulate(
+    termlabels = c(exposure, covars),
+    response = feat
+  )
+  
   res_lm <- lm(formula = fmla, data = tmp_data)
   summary_lm <- summary(res_lm)
-  coef <- summary_lm$coefficients[exposure,"Estimate"]
-  pval <- summary_lm$coefficients[exposure,"Pr(>|t|)"]
-  return(c(feat=feat, coef=as.numeric(coef), pval=as.numeric(pval), type="pearson"))
+  
+  coef <- summary_lm$coefficients[exposure, "Estimate"]
+  pval <- summary_lm$coefficients[exposure, "Pr(>|t|)"]
+  
+  return(c(
+    feat = feat,
+    coef = as.numeric(coef),
+    pval = as.numeric(pval),
+    type = "pearson"
+  ))
 }
 #' Filter Significant Correlations
 #'
