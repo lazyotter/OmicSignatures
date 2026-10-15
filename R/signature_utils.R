@@ -93,7 +93,8 @@ pearson_cor <- function(data, feat, exposure, covars) {
   tmp_data <- data[, vars, drop = FALSE]
   
   feat_form <- as.name(feat)
-  fmla <- as.formula(paste0(feat_form, " ~ ", paste(c(exposure, covars),collapse =" + ")))
+  fmla <- reformulate(termlabels = c(exposure, covars),
+                      response = feat_form)
   
   res_lm <- lm(formula = fmla, data = tmp_data)
   summary_lm <- summary(res_lm)
